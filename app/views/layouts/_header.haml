@@ -1,0 +1,16 @@
+-# coding: UTF-8
+%nav.navbar.navbar-default{style:"margin-bottom:0px;"}
+  .container
+    / Brand and toggle get grouped for better mobile display
+    .navbar-header
+      %button.navbar-toggle.collapsed{"data-target" => "#navbar-collapse", "data-toggle" => "collapse", :type => "button", "aria-expanded" => "false"}
+        %span.sr-only Toggle navigation
+        %span.icon-bar
+        %span.icon-bar
+        %span.icon-bar
+      = link_to Setting.website.title, "/", class: "navbar-brand"
+    .collapse.navbar-collapse{role: 'navigation', id:'navbar-collapse'}
+      %ul.nav.navbar-nav
+        %li= link_to '小四说', '/thursday_say'
+      %ul.nav.navbar-nav.navbar-right
+        %li= link_to "登陆", "/login"

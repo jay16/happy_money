@@ -1,0 +1,68 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+# 注意:
+#
+# 文件添加至本地文件，而依然被跟踪,可使用下面代码，把该文件从cached中删除。
+# git rm --cached un_wanted_be_tracked_file_name
+
+*.vcf
+*.gz
+*.pdf
+*.conf
+*.class
+.unicorn-port
+.current-app
+
+# 项目配置文件 => *.yaml.example
+config/*.y[a]ml
+coverage
+
+# 项目本地文件夹
+log/
+tmp/
+.sass-cache/
+
+/log/*.log
+
+# 系统配置文件
+.ruby-version
+.DS_Store
+# 临时文件
+*.gem
+*.rbc
+.config
+*.lock
+*.out
+.sass*
+.coffee*
+*cache
+.git
+.bundle
+*.swp
+*~
+*.gem
+*.rbc
+/.config
+/coverage/
+/tmp/
+
+## Specific to RubyMotion:
+.dat*
+.repl_history
+build/
+
+## Documentation cache and generated files:
+/.yardoc/
+/_yardoc/
+/doc/
+/rdoc/
+
+## Environment normalisation:
+/.bundle/
+/vendor/bundle
+/lib/bundler/man/
+
+# for a library or gem, you might want to ignore these files since the code is
+# intended to run in multiple environments; otherwise, check them in:
+# Gemfile.lock
+# .ruby-version
+# .ruby-gemset

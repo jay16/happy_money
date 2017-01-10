@@ -1,0 +1,96 @@
+default: &default
+  domain: 'website-domain'
+  app_name: 'redis-namespace'
+  redis_url: 'redis://127.0.0.1:6379/0'
+  pgyer_short: 'pgyer-short-path-name'
+  admin_nums:
+    - 'administrator'
+    - 'rspec'
+  website:
+    title: 'website-title'
+    subtitle: 'website-subtitle'
+    slogan: 'todo'
+    favicon: '/images/favicon.png'
+    footer: 'todo'
+  unicorn:
+    timeout: 30
+    worker_processes: 3
+  server:
+    app_root_path: 'app_root_path'
+    host: 'host'
+    user: 'user'
+    password: 'password'
+  database:
+    host: 'remote-host'
+    username: 'username'
+    password: 'password'
+    db_name: 'db_name'
+  umeng:
+    ios:
+      app_key: '-'
+      app_master_secret: '-'
+    android:
+      app_key: '-'
+      app_master_secret: '-'
+  geetest:
+    captcha_id: '-'
+    private_key: '-'
+  sms:
+    username: '-'
+    password: '-'
+    apikey: '-'
+  qiniu:
+    bucket: 'gravatar'
+    access_key: '-'
+    secret_key: '-'
+    out_link: '-'
+  email:
+    username: 'sendemail'
+    password: 'sendemail-pwd'
+  notify:
+    developer:
+      sms:
+        - ''
+      email:
+        - 'jay_li'
+    configer:
+      sms:
+        - ''
+      email:
+        - 'jay_li'
+    member:
+      email:
+        - 'jay_li'
+  action_log:
+    white_list:
+      - '登录'
+      - '点击'
+      - '解屏'
+      - '警告'
+      - '发表'
+      - 'JS异常'
+      - '重置密码'
+      - '微信分享'
+      - '设置锁屏'
+      - '退出登录'
+    black_list:
+      - '返回'
+      - '刷新'
+  thread_limit:
+    report: 3
+    barcode: 3
+  system_limit:
+    disk: 0.90
+    memory: 0.97
+  pgyer:
+    api_key: '45be6d228e747137bd192c4c47d4f64a'
+    shortcut: 'yh-test'
+
+production:
+  <<: *default
+
+development:
+  <<: *default
+
+test:
+  <<: *default

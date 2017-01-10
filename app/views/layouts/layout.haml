@@ -1,0 +1,47 @@
+-# coding: UTF-8
+!!! Strict
+%html
+  %head
+    = render_page_title
+    %meta{'http-equiv' => 'refresh', content: '900'}/
+    %meta{'http-equiv' => 'content-type', content: 'text/html', charset: 'UTF-8'}/
+    %meta{'http-equiv' => 'X-UA-Compatible', content: 'IE=edge'}/
+    %meta{name: 'viewport', content: 'width=device-width, initial-scale=1'}/
+    %meta{name: 'renderer', content:'webkit'}/
+    %meta{name: 'keywords', content: "#{@meta_keywords}"}/
+    %meta{name: 'description', content: "#{@meta_description}"}/
+    %link{href: "#{Setting.website.favicon}", rel: 'shortcut icon'}/
+
+    = stylesheet_link_tag 'bootstrap.min.css'
+    = stylesheet_link_tag 'nprogress.css'
+    = stylesheet_link_tag 'application.css'
+    = javascript_include_tag 'jquery.min.js'
+    = javascript_include_tag 'bootstrap.min.js'
+    = javascript_include_tag 'nprogress.js'
+    = javascript_include_tag 'application.js'
+    - if mobile?
+      %meta{content: 'no', name: 'apple-mobile-web-app-capable'}/
+      %meta{content: 'True', name: 'HandheldFriendly'}/
+      %meta{content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no', name: 'viewport'}/
+      :css
+        body { max-width: 1000px; min-width:300px; }
+        .bs-docs-header h1 { text-align: left; padding-left: 10px;}
+    :css
+      #footer {margin-top:20px;}
+
+  %body{style: 'background:#f0f0f0;'}
+    = render_page_header
+    .container#main
+      .row
+        .col-sm-12{style: 'text-align:center;'}
+          .loading.hidden 加载中...
+          %p.flash_area
+            = flash_message
+      .row
+        .col-sm-12
+          = yield
+
+    .container#footer
+      .row.center
+        .footer &copy; loading
+
