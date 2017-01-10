@@ -13,7 +13,6 @@ unicorn_config_file=config/unicorn.rb
 
 unicorn_pid_file=tmp/pids/unicorn.pid
 redis_pid_file=tmp/pids/redis.pid
-sidekiq_pid_file=tmp/pids/sidekiq.pid
 
 # user bash environment for crontab job.
 # shell_used=${SHELL##*/}
@@ -101,29 +100,6 @@ process_checker() {
     return 0
 }
 
-mobile_asset_check() {
-    local current_app=$(cat .current-app)
-    local asset_name="$1"
-    local zip_path="public/mobile_assets/${current_app}/${asset_name}.zip"
-
-    if [[ -f ${zip_path} ]]; then
-        cp ${zip_path} public/${asset_name}.zip
-    else
-        echo "WARNING: ${zip_path} not found"
-    fi
-}
-
-mobile_assets_check() {
-    mobile_asset_check "fonts"
-    mobile_asset_check "images"
-    mobile_asset_check "assets"
-    mobile_asset_check "loading"
-    mobile_asset_check "stylesheets"
-    mobile_asset_check "javascripts"
-    mobile_asset_check "advertisement"
-    mobile_asset_check "BarCodeScan"
-}
-
 cd "${app_root_path}" || exit 1
 case "$1" in
     gem)
@@ -142,33 +118,9 @@ case "$1" in
     ;;
 
     config|conf)
-        mkdir -p {log/crontab,tmp/{rb,js,js.zip,pids,barcode,barcode.zip}} > /dev/null 2>&1
-        mkdir -p public/gravatar > /dev/null 2>&1
-        mobile_assets_check
-
-        if [[ ! -f .unicorn-port ]]; then
-            echo 4567 > .unicorn-port
-            echo -e "\tgenerate .unicorn-port default 4567 $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')"
-        fi
-
-        if [[ ! -f db/backup.sh ]]; then
-            RACK_ENV=production $bundle_command exec rake g:script:backup:mysql_and_redis
-            echo -e "\tgenerate db/backup.sh $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')"
-        fi
-
-        if [[ ! -f log/backup.sh ]]; then
-            RACK_ENV=production $bundle_command exec rake g:script:backup:log
-            echo -e "\tgenerate log/backup.sh $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')"
-        fi
-
         if [[ ! -f config/redis.conf ]]; then
             RACK_ENV=production $bundle_command exec rake redis:generate_config
             echo -e "\tgenerate config/redis.conf $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')"
-        fi
-
-        if [[ ! -f config/umeng_push_api_code_mapping.json ]]; then
-            $bundle_command exec ruby lib/scripts/umeng_push_api_code_mapping.rb
-            echo -e "\tgenerate config/umeng_push_api_code_mapping.json $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')"
         fi
 
         /bin/bash "$0" bundle
@@ -180,7 +132,6 @@ case "$1" in
         /bin/bash "$0" config
 
         /bin/bash "$0" redis:start
-        /bin/bash "$0" sidekiq:start
         /bin/rm -f tmp/rb/*.rb > /dev/null 2>&1
 
         command_text="$bundle_command exec unicorn -c ${unicorn_config_file} -p ${unicorn_port} -E ${unicorn_env} -D"
@@ -197,8 +148,6 @@ case "$1" in
     ;;
 
     restart:force)
-        /bin/bash "$0" sidekiq:restart
-
         /bin/bash "$0" stop
         /bin/sleep 1
         echo -e '\n\n#-----------command sparate line----------\n\n'
@@ -220,100 +169,6 @@ case "$1" in
         /bin/bash "$0" redis:start
     ;;
 
-    sidekiq:start)
-        command_text="${bundle_command} exec sidekiq -r ./config/boot.rb -C ./config/sidekiq.yaml -e production -d"
-        process_start "${sidekiq_pid_file}" 'sidekiq' "${command_text}"
-    ;;
-
-    sidekiq:stop)
-        process_stop "${sidekiq_pid_file}" 'sidekiq'
-    ;;
-
-    sidekiq:restart)
-        /bin/bash "$0" sidekiq:stop
-        /bin/sleep 1
-        echo -e '\n\n#-----------command sparate line----------\n\n'
-        /bin/bash "$0" sidekiq:start
-    ;;
-
-    process_defender)
-        process_checker "${redis_pid_file}" 'redis'
-        process_checker "${sidekiq_pid_file}" 'sidekiq'
-        process_checker "${unicorn_pid_file}" 'unicorn'
-    ;;
-
-    app_defender)
-        echo -e $(date "+\n\n## app defender at %y-%m-%d %H:%M:%S\n")
-        /bin/bash "$0" process_defender
-        /bin/bash "$0" start
-    ;;
-
-    data:backup)
-        timestamp=$(date "+%y%m%d%H%M%S")
-        echo "mysqldump -hyonghui.idata.mobi -u -p yonghuibi > tmp/backup_$timestamp.sql"
-    ;;
-
-    data:import)
-        usage="eg: $0 $1 remote_username remote_password local_password"
-        [[ -z "$2" ]] && echo -e "\t# error:please tell remote database username\n\t${usage}" && exit
-        [[ -z "$3" ]] && echo -e "\t# error:please tell remote database password\n\t${usage}" && exit
-        [[ -z "$4" ]] && echo -e "\t# error:please tell local database password\n\t${usage}" && exit
-
-        mysqldump -hyonghui.idata.mobi -u"$2" -p"$3" yonghuibi > tmp/remote-data.sql
-        mysql -uroot -p"$4" yonghuibi < tmp/remote-data.sql
-
-        run_state=$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')
-        echo -e '\t# import server database data to local'
-
-        # bash "$0" copy_data "dev" "$4"
-        # bash "$0" copy_data "test" "$4"
-    ;;
-
-    # only can run on my mac for unit test!
-    data:copy)
-        usage="eg: $0 $1 {dev,test} db_password"
-        [[ -z "$2" ]] && echo -e "\t# error:please tell rack environment(dev/test)\n\t${usage}" && exit
-
-        if [[ "$2" != "dev" && "$2" != "test" ]]; then
-            echo -e "\t# error:rack environment only in (dev, test)\n\t${usage}" && exit
-        fi
-
-        db_name=$(test "$2" = "test" && echo "yonghuibi_test" || echo "yonghuibi_development")
-
-        # echo "CREATE DATABASE ${db_name} DEFAULT CHARACTER SET UTF8 COLLATE UTF8_GENERAL_CI;"
-        [[ -z "$3" ]] && echo -e "\t# error:please tell database password for ${db_name}(root)\n\t${usage}" && exit
-
-        db_pwd="$3"
-        mysqldump yonghuibi -uroot -p"${db_pwd}" --add-drop-table | mysql "${db_name}" -uroot -p"${db_pwd}"
-
-        run_state=$(test $? -eq 0 && echo "successfully" || echo "failed")
-        echo -e "\t# copy yonghuibi data to ${db_name} ${run_state}"
-    ;;
-
-    barcode)
-        redis_key="*cache/barcode*$2*"
-        echo "redis-cli keys '${redis_key}' | xargs -I key redis-cli get keys"
-        redis-cli keys "${redis_key}" | xargs -I key redis-cli get key
-    ;;
-
-    system_monitor|sm)
-        lib_utils_path=$(pwd)/lib/utils
-        ruby -I ${lib_utils_path} -e 'load "simple_system_monitor.rb"; puts SimpleSystem::Monitor.report'
-    ;;
-
-    crontab:list)
-        /usr/bin/crontab -l
-    ;;
-    crontab:edit)
-        /usr/bin/crontab -e
-    ;;
-    crontab:clear)
-        /usr/bin/crontab -r
-    ;;
-    crontab:update)
-        $bundle_command exec whenever --update-crontab
-    ;;
-
     git:push)
         git_current_branch=$(git rev-parse --abbrev-ref HEAD)
         git push origin ${git_current_branch}
@@ -323,75 +178,6 @@ case "$1" in
         git pull origin ${git_current_branch}
     ;;
 
-    rspec:test)
-        redis-cli keys '*:test*' | xargs redis-cli del
-        $bundle_command exec rspec spec
-    ;;
-    rspec:seed)
-        command_text="bundle exec rake seed:data:load RACK_ENV=test"
-        echo "$ run \`${command_text}\`"
-        ${command_text}
-        echo "# task run $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')"
-    ;;
-
-    deploy:project)
-        platform=$(uname -s | tr '[:upper:]' '[:lower:]')
-        deploy_script="lib/scripts/deploy@${platform}.sh"
-
-        if test ! -f ${deploy_script}
-        then
-            echo "Error: not found script ${deploy_script}"
-            exit 2
-        fi
-
-        /bin/bash ${deploy_script}
-    ;;
-
-    deploy:init:seed)
-        rack_env=production
-        if [[ -n "$2" ]]; then
-            rack_env="$2"
-        fi
-
-        command_text="bundle exec rake seed:data:load RACK_ENV=${rack_env} DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
-        echo "$ run \`${command_text}\`"
-        ${command_text}
-        echo "# task run $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')"
-    ;;
-    deploy:server)
-        git checkout ./
-        /bin/bash "$0" git:pull
-        /bin/bash "$0" crontab:update
-        /bin/bash "$0" config
-        RACK_ENV=production bundle exec rake db:migrate
-    ;;
-
-    assets:zip)
-        app_name='null'
-        if [[ -n "$2" ]]; then
-            app_name="$2"
-        fi
-
-        public_dir=public/mobile_assets/${app_name}
-        if [[ ! -d "$public_dir" ]]; then
-            echo "error - unexpect app name: ${app_name}"
-            exit
-        fi
-
-        /bin/cp app/assets/javascripts/report_template_v[1-9].js ./
-        /usr/bin/zip javascripts.zip report_template_v[1-9].js
-        /bin/mv javascripts.zip $public_dir
-        /bin/rm report_template_v[1-9].js
-        /usr/bin/unzip -v $public_dir/javascripts.zip
-
-        /bin/cp app/assets/stylesheets/mobile*.css ./
-        /usr/bin/zip stylesheets.zip mobile*.css
-        /bin/mv stylesheets.zip $public_dir
-        /bin/rm mobile*.css
-        /usr/bin/unzip -v $public_dir/stylesheets.zip
-
-        /usr/local/bin/git status
-    ;;
 
     *)
         echo "warning: unkown params - $@"
