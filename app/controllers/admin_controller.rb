@@ -23,7 +23,7 @@ class AdminController < ApplicationController
   #
   # GET /admin/random
   get '/random' do
-    @prizes = redis.smembers('/prizes')
+    @prizes = redis.smembers('/prizes').map { |item| item.split('x').first }
     @numbers = redis.smembers('/numbers_to_happy').shuffle
 
     haml :random, layout: settings.layout

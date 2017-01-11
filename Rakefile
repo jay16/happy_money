@@ -17,8 +17,6 @@ task environment: 'Gemfile.lock' do
 end
 
 Dir.glob('lib/tasks/*.rake').each do |rake_file|
-  # skip local tasks
-  next if !`uname -s`.strip.eql?('Darwin') && local_tasks.include?(File.basename(rake_file))
 
   load rake_file
 end

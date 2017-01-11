@@ -6,19 +6,19 @@
   .list-group-item>.badge { background: green; }
 %ul.list-group
   %li.list-group-item
-    %span.badge 1
+    %span.badge x1
     现金一等奖(3,000)
   %li.list-group-item
-    %span.badge 2
+    %span.badge x2
     现金二等奖(1,500)
   %li.list-group-item
-    %span.badge 4
+    %span.badge x4
     现金三等奖(600)
   %li.list-group-item
-    %span.badge 1
+    %span.badge x1
     物品一等奖(iPad)
   %li.list-group-item
-    %span.badge 3
+    %span.badge x3
     物品二等奖(Kindle)
 
 - redis_kyes = redis.keys("/members/*")
@@ -31,3 +31,6 @@
       %tr
         %td= h['name']
         %td= h['organize']
+
+%small
+  = link_to '源代码', 'https://github.com/jay16/happy_money', target: '_blank'

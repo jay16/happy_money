@@ -2,7 +2,6 @@
 require 'unicorn/oob_gc'
 require 'unicorn/worker_killer'
 require 'unicorn_metrics/middleware'
-require 'sidekiq/web'
 require './config/boot.rb'
 
 # 每10次请求，才执行一次GC

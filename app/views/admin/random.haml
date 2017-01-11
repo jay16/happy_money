@@ -18,7 +18,7 @@
     $("input[name='number']").attr("value", rand_number)
   }
   $(function() {
-     var timerHandler = window.setInterval("unhapp_numbers_playing()", 300);
+     var timerHandler = window.setInterval("unhapp_numbers_playing()", 100);
      /*
       * 点击随机数字效果：
       * - 若在循环切换，则为中奖号码
@@ -30,7 +30,7 @@
       */
      $(".rand-number-playing").click(function() {
        if(typeof(timerHandler) === "undefined" || timerHandler === null) {
-           timerHandler = window.setInterval("unhapp_numbers_playing()", 300);
+           timerHandler = window.setInterval("unhapp_numbers_playing()", 100);
         }
         else {
            timerHandler = window.clearInterval(timerHandler);
