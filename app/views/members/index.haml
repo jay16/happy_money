@@ -1,1 +1,10 @@
-todo
+.jumbotron
+  %h1 分配号码
+  %p 随机分配一个互斥的数字
+
+%form{role: "form", action: '/members', method: 'post'}
+  .form-group
+    %label 用户名
+    %input.form-control{placeholder: "用户名", type: "text", name: 'name'}/
+    %p.help-block 请输入您的名称：姓氏 + 姓名
+  %button.btn.btn-default.btn-info{:type => "submit"} 抽号

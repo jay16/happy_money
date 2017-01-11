@@ -1,1 +1,33 @@
-hello
+.jumbotron{style: 'margin-bottom: 0px;'}
+  %h1 抽奖环节
+  %p 2017 乐课力办公室年会
+
+:css
+  .list-group-item>.badge { background: green; }
+%ul.list-group
+  %li.list-group-item
+    %span.badge 1
+    现金一等奖(3,000)
+  %li.list-group-item
+    %span.badge 2
+    现金二等奖(1,500)
+  %li.list-group-item
+    %span.badge 4
+    现金三等奖(600)
+  %li.list-group-item
+    %span.badge 1
+    物品一等奖(iPad)
+  %li.list-group-item
+    %span.badge 3
+    物品二等奖(Kindle)
+
+- redis_kyes = redis.keys("/members/*")
+%small
+  = "参与抽奖的同事名单（共#{redis_kyes.count}位）"
+%table.table.table-condensed.table-bordered
+  %tbody
+    - redis_kyes.each do |redis_key|
+      - h = redis.hgetall(redis_key)
+      %tr
+        %td= h['name']
+        %td= h['organize']

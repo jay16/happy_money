@@ -1,0 +1,17 @@
+- redis_kyes = redis.keys("/members/*")
+%small
+  = "参与抽奖的同事名单（共#{redis_kyes.count}位）"
+%table.table.table-condensed.table-bordered
+  %tbody
+    - redis_kyes.each do |redis_key|
+      - h = redis.hgetall(redis_key)
+      %tr
+        %td= h['name']
+        %td= h['organize']
+        %td= h['rand']
+        %td= h['prize']
+
+%br
+TODO: 奖品列表
+%br
+TODO: 抽奖方式
