@@ -128,11 +128,11 @@ case "$1" in
     ;;
 
     start)
+        /bin/mkdir -p ./{log,tmp/pids}
         echo "## shell used: ${shell_used}"
-        /bin/bash "$0" config
+        $bundle_command exec rake redis:generate_config
 
         /bin/bash "$0" redis:start
-        /bin/rm -f tmp/rb/*.rb > /dev/null 2>&1
 
         command_text="$bundle_command exec unicorn -c ${unicorn_config_file} -p ${unicorn_port} -E ${unicorn_env} -D"
         process_start "${unicorn_pid_file}" 'unicorn' "${command_text}"

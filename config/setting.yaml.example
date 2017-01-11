@@ -11,6 +11,9 @@ default: &default
     slogan: 'todo'
     favicon: '/images/2017.ico'
     footer: ''
+  unicorn:
+    timeout: 30
+    worker_processes: 3
   prizes:
     - 现金一等奖(3,000)x1
     - 现金二等奖(1,500)x2
