@@ -128,7 +128,7 @@ case "$1" in
     ;;
 
     start)
-        /bin/mkdir -p ./{log,tmp/pids}
+        /bin/mkdir -p ./{log,db,tmp/pids}
         echo "## shell used: ${shell_used}"
         $bundle_command exec rake redis:generate_config
 

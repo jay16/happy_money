@@ -19,6 +19,7 @@ coverage
 # 项目本地文件夹
 log/
 tmp/
+db/
 .sass-cache/
 
 /log/*.log
