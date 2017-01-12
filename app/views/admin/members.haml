@@ -1,9 +1,15 @@
-- redis_kyes = redis.keys("/members/*")
+%p
+  - members = redis.smembers("/numbers_to_happy")
+  %small
+    = "待抽号码(#{members.count})："
+    = redis.smembers("/numbers_to_happy")
+
 %small
-  = "参与抽奖的同事名单（共#{redis_kyes.count}位）"
+  - redis_keys =redis.keys("/members/*")
+  = "参与抽奖的同事名单（共#{redis_keys.count}位）"
 %table.table.table-condensed.table-bordered
   %tbody
-    - redis_kyes.each do |redis_key|
+    - redis_keys.each do |redis_key|
       - h = redis.hgetall(redis_key)
       %tr
         %td= h['name']

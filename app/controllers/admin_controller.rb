@@ -11,14 +11,6 @@ class AdminController < ApplicationController
     haml :index, layout: settings.layout
   end
 
-  get '/members' do
-    haml :members, layout: settings.layout
-  end
-
-  get '/members' do
-    haml :members, layout: settings.layout
-  end
-
   #
   # 抽奖
   #
@@ -27,7 +19,15 @@ class AdminController < ApplicationController
   #
   # GET /admin/random
   get '/random' do
-    @prizes = redis.smembers('/prizes').map { |item| item.split('x').first }
+    @prizes = redis.smembers('/prizes').map do |prize_with_count|
+      prize, count = prize_with_count.split('x')
+      prize_count = redis.keys('/members/*').count do |redis_key|
+        redis.hget(redis_key, 'prize') == prize
+      end
+
+      prize_with_count if prize_count < count.to_i
+    end.compact
+    @prizes.push('幸运奖') if @prizes.empty?
 
     make_sure_unhappy_numbers_in_random
     @numbers = redis.smembers('/numbers_to_happy').shuffle
@@ -42,16 +42,24 @@ class AdminController < ApplicationController
 
     redis.srem('/numbers_to_happy', params[:number])
 
+    params[:prize] = params[:prize].split('x').first
     if member_key
       redis.hmset(member_key, ['prize', params[:prize]])
+      prize_count = redis.keys('/members/*').count do |redis_key|
+        redis.hget(redis_key, 'prize') == params[:prize]
+      end
 
       redis_hash = redis.hgetall(member_key)
-      flash[:success] = format('%s - %s|%s|%s', params[:prize], redis_hash['rand'], redis_hash['name'], redis_hash['organize'])
+      flash[:success] = format('%s%sth - %s|%s|%s', params[:prize], prize_count, redis_hash['rand'], redis_hash['name'], redis_hash['organize'])
     else
       flash[:warning] = format('%s 号码未分配，请继续', params[:number])
     end
 
     redirect to("/random?prize=#{params[:prize]}&timestamp=#{Time.now.to_i}")
+  end
+
+  get '/members' do
+    haml :members, layout: settings.layout
   end
 
   get '/config' do
@@ -65,13 +73,6 @@ class AdminController < ApplicationController
     redirect to('/config')
   end
 
-  get '/numbers' do
-    redis.smembers('/numbers').to_s
-  end
-
-  get '/srandmember' do
-    redis.srandmember('/numbers').to_s
-  end
 
   get '/refresh' do
     redis.del('/members') if redis.exists('/members')
@@ -100,18 +101,21 @@ class AdminController < ApplicationController
       redis.sadd('/prizes', num)
     end
 
-    redirect to('/')
+    redirect to('/config')
   end
 
   get '/align' do
     redis.keys('/members/*').each do |redis_key|
-      puts redis_key
-      redis.hmset(redis_key, [
-        'rand', redis.spop('/numbers')
-      ])
+      if params[:force]
+        redis.hmset(redis_key, ['rand', redis.spop('/numbers')])
+      else
+        unless redis.hget(redis_key, 'rand')
+          redis.hmset(redis_key, ['rand', redis.spop('/numbers')])
+        end
+      end
     end
 
-    redirect to('/')
+    redirect to('/config')
   end
 
   protected
