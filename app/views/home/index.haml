@@ -1,6 +1,6 @@
-.jumbotron{style: 'margin-bottom: 0px;'}
-  %h1 抽奖环节
-  %p 2017 乐课力办公室年会
+.jumbotron{style: 'padding-top:0px;margin-bottom: 0px;'}
+  %h1 年会抽奖
+  %p 中奖率仅 50%，欢迎弃权~
 
 :css
   .list-group-item>.badge { background: green; }
@@ -31,6 +31,19 @@
       %tr
         %td= h['name']
         %td= h['organize']
+
+%p.text-muted
+  = "1. 上述 #{redis_kyes.count} 位同事会分配一个随机号码"
+%p.text-muted
+  2. 抽奖人从随机跳转的号码中抽取中奖号码
+%p.text-muted
+  3. 随机跳转的号码中会有十个干扰号码
+%p.text-muted
+  4. 抽奖人抽取到干扰号码需表演才艺，仅一次豁免权
+%p.text-muted
+  5. 第六感预感自己会得奖者请提前准备好才艺表演
+%p.text-muted
+  ps: 下午 4:30 在大会议演示抽奖，感兴趣者欢迎旁观
 
 %small
   = link_to '源代码', 'https://github.com/jay16/happy_money', target: '_blank'
