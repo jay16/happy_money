@@ -162,9 +162,9 @@ class AdminController < ApplicationController
     elsif prize.include?('600')
       600
     elsif prize.include?('kindle')
-      600
+      558
     elsif prize.include?('ipad')
-      2500
+      3688
     elsif prize.include?('幸运')
       0
     else
