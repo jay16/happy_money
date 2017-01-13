@@ -59,6 +59,11 @@ class AdminController < ApplicationController
     redirect to("/random?prize=#{params[:prize]}&timestamp=#{Time.now.to_i}")
   end
 
+  get '/random_name' do
+    @numbers = Setting.members.map { |line| line.split(/\s*-\s*/).join('|') }
+    haml :random_name, layout: settings.layout
+  end
+
   get '/members' do
     haml :members, layout: settings.layout
   end

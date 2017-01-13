@@ -1,0 +1,35 @@
+:css
+  .rand-number-playing {font-size: 150px;display:block;text-align:center;margin-bottom:40px;}
+%form{role: "form", action: '/admin/random', method: 'post'}
+  %div.rand-number-playing
+
+:javascript
+  function unhapp_numbers_playing() {
+    var unhappy_numbers = #{@numbers},
+        rand_seed  = Math.random() * unhappy_numbers.length
+        rand_index = Math.floor(rand_seed * rand_seed) % unhappy_numbers.length,
+        rand_number = unhappy_numbers[rand_index];
+    $(".rand-number-playing").html(rand_number);
+    $("input[name='number']").attr("value", rand_number)
+  }
+  $(function() {
+     var timerHandler = window.setInterval("unhapp_numbers_playing()", 100);
+     /*
+      * 点击随机数字效果：
+      * - 若在循环切换，则为中奖号码
+      * - 若为静止状态，则开启循环模式
+      *
+      * 选中一个号码时
+      * - 确认该号码有对应的同事时，提交，该数字会从待选数字列表中移除
+      * - 无对应同事时，点击继续循环
+      */
+     $(".rand-number-playing").click(function() {
+       if(typeof(timerHandler) === "undefined" || timerHandler === null) {
+           timerHandler = window.setInterval("unhapp_numbers_playing()", 100);
+        }
+        else {
+           timerHandler = window.clearInterval(timerHandler);
+           console.log('heppy - ' + $(".rand-number-playing").html() + ', ' + $("input[name='number']").attr("value"));
+        }
+     })
+  })
