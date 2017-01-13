@@ -1,0 +1,27 @@
+%p.text-mute
+各团队获奖数量汇总
+%table.table.table-condensed.table-bordered
+  %tbody
+    - sum = 0
+    - @amount_hash.each_pair do |k, v|
+      - sum += v
+      %tr
+        %td= k
+        %td= v
+    %tr
+      %td 汇总
+      %td=sum
+
+%p.text-mute
+各团队获奖金额汇总
+%table.table.table-condensed.table-bordered
+  %tbody
+    - sum = 0
+    - @money_hash.each_pair do |k, v|
+      - sum += v
+      %tr
+        %td= k
+        %td= v
+    %tr
+      %td 汇总
+      %td=sum

@@ -1,7 +1,11 @@
 :css
   .rand-number-playing {font-size: 200px;display:block;text-align:center;margin-bottom:40px;}
+  .text-muted { text-align: center; }
 %form{role: "form", action: '/admin/random', method: 'post'}
   %div.rand-number-playing
+  %p.text-muted
+    = "还有#{@numbers.count}个号码"
+
   .form-group
     = hidden_field_tag(:number)
   .form-group

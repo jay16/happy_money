@@ -5,6 +5,7 @@ class AdminController < ApplicationController
   set :views, ENV['VIEW_PATH'] + '/admin'
   set :layout, :'../layouts/layout'
   register Sinatra::Redis
+  helpers Admin::ApplicationHelper
 
   # GET /admin/
   get '/' do
@@ -62,17 +63,16 @@ class AdminController < ApplicationController
     haml :members, layout: settings.layout
   end
 
-  get '/config' do
-    haml :config, layout: settings.layout
+  get '/test' do
+    haml :test, layout: settings.layout
   end
 
   get '/clean_pages' do
     redis_keys = redis.keys('*@*')
     redis.del(redis_keys) unless redis_keys.empty?
 
-    redirect to('/config')
+    redirect to('/')
   end
-
 
   get '/refresh' do
     redis.del('/members') if redis.exists('/members')
@@ -101,7 +101,7 @@ class AdminController < ApplicationController
       redis.sadd('/prizes', num)
     end
 
-    redirect to('/config')
+    redirect to('/')
   end
 
   get '/align' do
@@ -115,10 +115,60 @@ class AdminController < ApplicationController
       end
     end
 
-    redirect to('/config')
+    redirect to('/')
+  end
+
+  get '/report' do
+    @amount_hash = {}
+    redis.keys('/members/*').map do |redis_key|
+      [redis.hget(redis_key, 'organize'), prize_amount(redis.hget(redis_key, 'prize'))]
+    end.group_by { |arr| arr[0] }.each_pair do |k, v|
+      @amount_hash[k] = v.map(&:last).map(&:to_i).reduce(:+)
+    end.sort_by { |_key, value| value }
+    @amount_hash = @amount_hash.sort_by { |_key, value| value }.reverse.to_h
+
+    @money_hash = {}
+    redis.keys('/members/*').map do |redis_key|
+      [redis.hget(redis_key, 'organize'), prize_money(redis.hget(redis_key, 'prize'))]
+    end.group_by { |arr| arr[0] }.each_pair do |k, v|
+      @money_hash[k] = v.map(&:last).map(&:to_i).reduce(:+)
+    end
+    @money_hash = @money_hash.sort_by { |_key, value| value }.reverse.to_h
+
+    haml :report, layout: settings.layout
   end
 
   protected
+
+  def prize_amount(prize)
+    return 0 unless prize
+
+    prize.include?('幸运') ? 0 : 1
+  end
+
+  def prize_money(prize)
+    return 0 unless prize
+
+    prize.downcase!
+    if prize.include?('3,000')
+      3_000
+    elsif prize.include?('1,500')
+      1_500
+    elsif prize.include?('600')
+      600
+    elsif prize.include?('kindle')
+      600
+    elsif prize.include?('ipad')
+      2500
+    elsif prize.include?('幸运')
+      0
+    else
+      prize.to_i
+    end
+  rescue => e
+    puts e.message
+    0
+  end
 
   def make_sure_unhappy_numbers_in_random
     unhappy_numbers = redis.keys('/members/*').map do |redis_key|
